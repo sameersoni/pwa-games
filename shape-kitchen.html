@@ -151,6 +151,30 @@
     }
     .hud-center span { color:var(--nebula-teal); font-size:.85rem; }
 
+    #home-btn {
+      position: fixed;
+      top: 12px;
+      right: 14px;
+      z-index: 400;
+      background: rgba(28,36,80,0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(0,229,204,0.35);
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-family: 'Baloo 2', cursive;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: rgba(0,229,204,0.9);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: transform 0.12s;
+    }
+    #home-btn:active { transform: scale(0.91); }
+
     /* ── GAME AREA ── */
     #game-area {
       flex:1; display:flex; flex-direction:column;
@@ -395,6 +419,9 @@
 <div class="nebula nb1"></div>
 <div class="nebula nb2"></div>
 <div class="nebula nb3"></div>
+
+<!-- Home button -->
+<button id="home-btn">🏠 Home</button>
 
 <div id="app">
   <!-- HUD -->
@@ -942,6 +969,11 @@ function burstConfetti(count=30) {
     setTimeout(()=>p.parentNode&&p.parentNode.removeChild(p),1400);
   }
 }
+
+document.getElementById('home-btn').addEventListener('click', () => {
+  if (G.running && !confirm('Leave game? Your progress will be lost.')) return;
+  window.location.href = 'index.html';
+});
 
 // SW
 if('serviceWorker' in navigator){

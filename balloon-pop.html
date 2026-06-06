@@ -133,6 +133,30 @@
     #score-val { color: var(--pop-pink); }
     #lives-val { color: var(--pop-red); letter-spacing: 2px; }
 
+    #home-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 400;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 24px;
+      padding: 8px 18px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      color: #444;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.12s;
+    }
+    #home-btn:active { transform: scale(0.91); }
+
     /* Prompt banner */
     #prompt-banner {
       position: absolute;
@@ -389,6 +413,9 @@
 <div class="cloud cloud-2"></div>
 <div class="cloud cloud-3"></div>
 <div class="grass"></div>
+
+<!-- Home button -->
+<button id="home-btn" onclick="goHome()">🏠 Home</button>
 
 <!-- HUD -->
 <div id="hud" class="hidden">
@@ -769,6 +796,11 @@ function playSound(type) {
 // Unlock audio on first touch
 document.addEventListener('touchstart', () => getAudio(), { once: true });
 document.addEventListener('click', () => getAudio(), { once: true });
+
+function goHome() {
+  if (state.running && !confirm('Leave game? Your progress will be lost.')) return;
+  window.location.href = 'index.html';
+}
 
 // Service Worker registration
 if ('serviceWorker' in navigator) {

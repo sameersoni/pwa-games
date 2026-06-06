@@ -7,6 +7,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Game Hub"/>
   <meta name="theme-color" content="#1a1a2e"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/icon.svg"/>
   <title>🎮 Game Hub</title>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet"/>
 
@@ -379,10 +381,17 @@
       spaceDecoEl.appendChild(s);
     });
 
-    // ── Tactile feedback on iOS (no navigation change, just visual)
+    // ── Tactile feedback on iOS
     document.querySelectorAll('.game-card').forEach(card => {
       card.addEventListener('touchstart', () => {}, { passive: true });
     });
-  </script>
+
+    // ── Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+</script>
 </body>
 </html>
