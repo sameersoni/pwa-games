@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Game Hub"/>
+  <meta name="theme-color" content="#1a1a2e"/>
+  <title>🎮 Game Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg-top:    #0f0c29;
+      --bg-mid:    #1a1a4e;
+      --bg-bottom: #24243e;
+      --card-r: 28px;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(160deg, var(--bg-top) 0%, var(--bg-mid) 50%, var(--bg-bottom) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 20px)
+               env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 20px);
+      min-height: 100vh;
+    }
+
+    /* ── Stars background ── */
+    .stars {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      animation: twinkle var(--d) ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      from { opacity: var(--lo); transform: scale(1); }
+      to   { opacity: var(--hi); transform: scale(1.4); }
+    }
+
+    /* ── Layout ── */
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(24px, 5vh, 48px);
+      width: 100%;
+      max-width: 800px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+    }
+    .header h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2.4rem, 7vw, 4rem);
+      color: #fff;
+      text-shadow:
+        0 0 20px rgba(255, 200, 80, 0.7),
+        0 0 40px rgba(255, 200, 80, 0.3);
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+    .header p {
+      margin-top: 8px;
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      color: rgba(255,255,255,0.6);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Game cards grid ── */
+    .games {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(16px, 3vw, 32px);
+      width: 100%;
+    }
+
+    @media (max-width: 520px) {
+      .games { grid-template-columns: 1fr; }
+    }
+
+    /* ── Individual card ── */
+    .game-card {
+      position: relative;
+      border-radius: var(--card-r);
+      overflow: hidden;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      aspect-ratio: 3 / 4;
+      border: 2px solid transparent;
+      transition: transform 0.18s cubic-bezier(.34,1.56,.64,1),
+                  box-shadow 0.18s ease,
+                  border-color 0.18s ease;
+      -webkit-transform: translateZ(0); /* GPU layer on iOS */
+    }
+
+    .game-card:active {
+      transform: scale(0.95);
+    }
+
+    /* Balloon Pop card */
+    .card-balloon {
+      background: linear-gradient(160deg, #87CEEB 0%, #B8E4F7 40%, #5DBB63 100%);
+      box-shadow: 0 8px 40px rgba(135, 206, 235, 0.35);
+    }
+    .card-balloon:hover {
+      box-shadow: 0 12px 60px rgba(135, 206, 235, 0.55);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Shape Kitchen card */
+    .card-kitchen {
+      background: linear-gradient(160deg, #0B0E2D 0%, #141938 40%, #1C2450 100%);
+      box-shadow: 0 8px 40px rgba(0, 229, 204, 0.25);
+    }
+    .card-kitchen:hover {
+      box-shadow: 0 12px 60px rgba(0, 229, 204, 0.45);
+      border-color: rgba(0, 229, 204, 0.5);
+    }
+
+    /* ── Card scene illustration ── */
+    .card-scene {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 30%;
+      font-size: clamp(5rem, 14vw, 9rem);
+      animation: floatScene 3s ease-in-out infinite alternate;
+      user-select: none;
+    }
+    @keyframes floatScene {
+      from { transform: translateY(0px); }
+      to   { transform: translateY(-10px); }
+    }
+
+    .card-kitchen .card-scene {
+      animation: floatScene 4s ease-in-out infinite alternate;
+    }
+
+    /* Balloon card decorative balloons */
+    .balloons {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .balloon {
+      position: absolute;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      animation: drift var(--d) ease-in-out infinite alternate;
+    }
+    @keyframes drift {
+      from { transform: translate(0, 0) rotate(-5deg); }
+      to   { transform: translate(var(--tx), var(--ty)) rotate(5deg); }
+    }
+
+    /* Space card decorative stars */
+    .space-deco {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .space-star {
+      position: absolute;
+      font-size: clamp(1rem, 2vw, 1.5rem);
+      animation: spin var(--d) linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* ── Card label band ── */
+    .card-label {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      padding: clamp(14px, 3vw, 22px) clamp(16px, 3vw, 24px);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-balloon .card-label {
+      background: linear-gradient(to top, rgba(30, 30, 80, 0.92) 0%, rgba(30, 30, 80, 0.6) 80%, transparent 100%);
+    }
+    .card-kitchen .card-label {
+      background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 80%, transparent 100%);
+    }
+
+    .card-label h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1.3rem, 3.5vw, 2rem);
+      color: #fff;
+      line-height: 1.1;
+    }
+    .card-label span {
+      font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+      font-weight: 700;
+      color: rgba(255,255,255,0.65);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .card-balloon .card-label h2 { color: #FFE566; }
+    .card-balloon .card-label span { color: rgba(255,230,100,0.7); }
+
+    .card-kitchen .card-label h2 { color: #00E5CC; }
+    .card-kitchen .card-label span { color: rgba(0, 229, 204, 0.65); }
+
+    /* ── Play button pill ── */
+    .play-btn {
+      position: absolute;
+      bottom: clamp(72px, 16vw, 100px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      padding: 10px 28px;
+      border-radius: 50px;
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      letter-spacing: 1px;
+      border: none;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .card-balloon .play-btn {
+      background: linear-gradient(135deg, #FF6B9D, #FF8C42);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(255, 107, 157, 0.5);
+    }
+    .card-kitchen .play-btn {
+      background: linear-gradient(135deg, #00E5CC, #4ECDC4);
+      color: #0B0E2D;
+      box-shadow: 0 4px 20px rgba(0, 229, 204, 0.5);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.25);
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Star field -->
+  <div class="stars" id="stars"></div>
+
+  <div class="container">
+
+    <header class="header">
+      <h1>🎮 Game Hub</h1>
+      <p>Tap a game to start playing</p>
+    </header>
+
+    <section class="games">
+
+      <!-- Balloon Pop -->
+      <a class="game-card card-balloon" href="balloon-pop.html">
+        <div class="balloons" id="balloons"></div>
+        <div class="card-scene">🎈</div>
+        <div class="play-btn">▶ Play</div>
+        <div class="card-label">
+          <h2>Balloon Pop!</h2>
+          <span>Tap &amp; Pop</span>
+        </div>
+      </a>
+
+      <!-- Shape Kitchen -->
+      <a class="game-card card-kitchen" href="shape-kitchen.html">
+        <div class="space-deco" id="spaceDeco"></div>
+        <div class="card-scene">🚀</div>
+        <div class="play-btn">▶ Play</div>
+        <div class="card-label">
+          <h2>Shape Kitchen</h2>
+          <span>Match &amp; Learn</span>
+        </div>
+      </a>
+
+    </section>
+
+    <footer class="footer">More games coming soon</footer>
+
+  </div>
+
+  <script>
+    // ── Star field
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 80; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      const size = Math.random() * 2.5 + 0.5;
+      const lo = (Math.random() * 0.2 + 0.05).toFixed(2);
+      const hi = (Math.random() * 0.5 + 0.3).toFixed(2);
+      const d  = (Math.random() * 3 + 2).toFixed(1) + 's';
+      s.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}%;
+        top:${Math.random()*100}%;
+        --lo:${lo}; --hi:${hi}; --d:${d};
+        animation-delay:${(Math.random()*4).toFixed(1)}s;
+      `;
+      starsEl.appendChild(s);
+    }
+
+    // ── Balloon decorations inside the balloon card
+    const balloonEmoji = ['🎈','🎈','🎈','🟣','🟡','🔵'];
+    const balloonsEl = document.getElementById('balloons');
+    balloonEmoji.forEach((e, i) => {
+      const b = document.createElement('div');
+      b.className = 'balloon';
+      b.textContent = e;
+      const tx = ((Math.random() - 0.5) * 12).toFixed(0) + 'px';
+      const ty = ((Math.random() - 0.5) * 12).toFixed(0) + 'px';
+      const d  = (Math.random() * 2 + 2).toFixed(1) + 's';
+      b.style.cssText = `
+        left:${10 + i * 15}%;
+        top:${10 + Math.random() * 40}%;
+        --tx:${tx}; --ty:${ty}; --d:${d};
+        animation-delay:${(Math.random() * 1.5).toFixed(1)}s;
+        opacity: 0.7;
+      `;
+      balloonsEl.appendChild(b);
+    });
+
+    // ── Space decorations inside the kitchen card
+    const spaceEmoji = ['⭐','✨','🌟','💫','⭐','✨'];
+    const spaceDecoEl = document.getElementById('spaceDeco');
+    spaceEmoji.forEach((e, i) => {
+      const s = document.createElement('div');
+      s.className = 'space-star';
+      s.textContent = e;
+      const d = (Math.random() * 6 + 6).toFixed(1) + 's';
+      s.style.cssText = `
+        left:${5 + i * 16}%;
+        top:${10 + Math.random() * 45}%;
+        --d:${d};
+        animation-delay:${(Math.random() * 3).toFixed(1)}s;
+        opacity: 0.4;
+      `;
+      spaceDecoEl.appendChild(s);
+    });
+
+    // ── Tactile feedback on iOS (no navigation change, just visual)
+    document.querySelectorAll('.game-card').forEach(card => {
+      card.addEventListener('touchstart', () => {}, { passive: true });
+    });
+  </script>
+</body>
+</html>

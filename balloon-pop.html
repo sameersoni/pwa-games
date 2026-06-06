@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Balloon Pop"/>
+  <meta name="theme-color" content="#FF6B9D"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
+  <title>Balloon Pop! 🎈</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --sky-top: #87CEEB;
+      --sky-mid: #B8E4F7;
+      --sky-bottom: #E8F7FF;
+      --grass: #5DBB63;
+      --sun: #FFD700;
+      --pop-yellow: #FFE566;
+      --pop-pink: #FF6B9D;
+      --pop-orange: #FF8C42;
+      --pop-green: #56C596;
+      --pop-blue: #4ECDC4;
+      --pop-purple: #C77DFF;
+      --pop-red: #FF5757;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 60%, var(--sky-bottom) 100%);
+      height: 100dvh;
+      overflow: hidden;
+      position: relative;
+      touch-action: none;
+    }
+
+    /* Clouds */
+    .cloud {
+      position: absolute;
+      background: white;
+      border-radius: 50px;
+      opacity: 0.85;
+      animation: floatCloud linear infinite;
+    }
+    .cloud::before, .cloud::after {
+      content: '';
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+    }
+    .cloud-1 { width: 100px; height: 35px; top: 8%; animation-duration: 28s; animation-delay: -5s; }
+    .cloud-1::before { width: 55px; height: 55px; top: -28px; left: 15px; }
+    .cloud-1::after { width: 40px; height: 40px; top: -20px; left: 45px; }
+
+    .cloud-2 { width: 70px; height: 25px; top: 18%; animation-duration: 22s; animation-delay: -12s; }
+    .cloud-2::before { width: 38px; height: 38px; top: -20px; left: 10px; }
+    .cloud-2::after { width: 28px; height: 28px; top: -14px; left: 32px; }
+
+    .cloud-3 { width: 120px; height: 40px; top: 5%; animation-duration: 35s; animation-delay: -20s; }
+    .cloud-3::before { width: 65px; height: 65px; top: -35px; left: 20px; }
+    .cloud-3::after { width: 50px; height: 50px; top: -25px; left: 60px; }
+
+    @keyframes floatCloud {
+      from { transform: translateX(-200px); }
+      to { transform: translateX(calc(100vw + 200px)); }
+    }
+
+    /* Sun */
+    .sun {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background: var(--sun);
+      border-radius: 50%;
+      box-shadow: 0 0 0 8px rgba(255,215,0,0.25), 0 0 0 16px rgba(255,215,0,0.12);
+      animation: sunPulse 3s ease-in-out infinite;
+    }
+    @keyframes sunPulse {
+      0%, 100% { box-shadow: 0 0 0 8px rgba(255,215,0,0.25), 0 0 0 16px rgba(255,215,0,0.12); }
+      50% { box-shadow: 0 0 0 12px rgba(255,215,0,0.3), 0 0 0 24px rgba(255,215,0,0.15); }
+    }
+
+    /* Grass */
+    .grass {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: var(--grass);
+      border-radius: 60% 60% 0 0 / 30px 30px 0 0;
+    }
+    .grass::before {
+      content: '';
+      position: absolute;
+      top: -15px;
+      left: 0; right: 0;
+      height: 30px;
+      background: #6DCF74;
+      border-radius: 50%;
+    }
+
+    /* HUD */
+    #hud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 100;
+    }
+    .hud-pill {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 24px;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem;
+      color: #333;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .hud-pill .icon { font-size: 1.3rem; }
+    #score-val { color: var(--pop-pink); }
+    #lives-val { color: var(--pop-red); letter-spacing: 2px; }
+
+    /* Prompt banner */
+    #prompt-banner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 32px;
+      padding: 20px 32px;
+      text-align: center;
+      z-index: 200;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      min-width: 280px;
+      max-width: 340px;
+    }
+    #prompt-banner h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 6px;
+    }
+    #prompt-text {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.6rem;
+      color: var(--pop-pink);
+      line-height: 1;
+    }
+    #prompt-sub {
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    /* Level badge */
+    #level-badge {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      color: white;
+      background: rgba(0,0,0,0.2);
+      border-radius: 20px;
+      padding: 4px 16px;
+      z-index: 100;
+    }
+
+    /* Balloon */
+    .balloon {
+      position: absolute;
+      cursor: pointer;
+      user-select: none;
+      animation: floatUp linear forwards;
+      transform-origin: center bottom;
+      z-index: 50;
+      touch-action: none;
+    }
+
+    .balloon-body {
+      border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fredoka One', cursive;
+      color: white;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      font-size: 1.5rem;
+      position: relative;
+      box-shadow: inset -4px -6px 0 rgba(0,0,0,0.1), inset 4px 4px 0 rgba(255,255,255,0.3);
+      animation: sway 2.5s ease-in-out infinite;
+    }
+    .balloon-body::after {
+      content: '';
+      position: absolute;
+      top: 12%;
+      left: 20%;
+      width: 22%;
+      height: 18%;
+      background: rgba(255,255,255,0.5);
+      border-radius: 50%;
+      transform: rotate(-30deg);
+    }
+    .balloon-knot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin: 0 auto;
+      position: relative;
+    }
+    .balloon-string {
+      width: 1px;
+      height: 40px;
+      background: rgba(0,0,0,0.2);
+      margin: 0 auto;
+    }
+
+    @keyframes sway {
+      0%, 100% { transform: rotate(-4deg); }
+      50% { transform: rotate(4deg); }
+    }
+    @keyframes floatUp {
+      from { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(-110vh); opacity: 0.7; }
+    }
+
+    /* Pop animation */
+    @keyframes popBurst {
+      0% { transform: scale(1); opacity: 1; }
+      30% { transform: scale(1.6); opacity: 0.8; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+    .popping {
+      animation: popBurst 0.3s ease-out forwards !important;
+      pointer-events: none;
+    }
+
+    /* Confetti particle */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 300;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(150px) rotate(720deg); }
+    }
+
+    /* Wrong balloon shake */
+    @keyframes wrongShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+
+    /* Screens */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      padding: 24px;
+    }
+    #start-screen {
+      background: linear-gradient(135deg, #FFE5F0 0%, #E5F5FF 50%, #FFFDE5 100%);
+    }
+    #game-over-screen {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(16px);
+    }
+    #level-up-screen {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(16px);
+    }
+
+    .screen-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2.8rem, 10vw, 4.5rem);
+      line-height: 1;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .screen-emoji {
+      font-size: clamp(3rem, 12vw, 5rem);
+      margin-bottom: 8px;
+      animation: bounce 1s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    .screen-sub {
+      font-size: 1rem;
+      color: #666;
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .big-btn {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      border: none;
+      border-radius: 50px;
+      padding: 16px 48px;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.15);
+      transition: transform 0.1s, box-shadow 0.1s;
+      margin: 6px;
+    }
+    .big-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.15); }
+    .btn-play { background: linear-gradient(135deg, #FF6B9D, #FF8C42); }
+    .btn-green { background: linear-gradient(135deg, #56C596, #4ECDC4); }
+    .btn-blue { background: linear-gradient(135deg, #4ECDC4, #4B9FFF); }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+      margin-bottom: 16px;
+    }
+    .mode-card {
+      background: white;
+      border-radius: 20px;
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .mode-card:active, .mode-card.selected {
+      border-color: var(--pop-pink);
+      transform: scale(0.97);
+    }
+    .mode-card .mode-icon { font-size: 2rem; display: block; margin-bottom: 4px; }
+    .mode-card .mode-name { font-family: 'Fredoka One', cursive; font-size: 1rem; color: #333; }
+    .mode-card .mode-desc { font-size: 0.72rem; color: #888; margin-top: 2px; }
+
+    .score-big {
+      font-family: 'Fredoka One', cursive;
+      font-size: 4rem;
+      background: linear-gradient(135deg, var(--pop-pink), var(--pop-orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .stars-row { font-size: 2.5rem; letter-spacing: 4px; margin: 8px 0; }
+
+    /* hidden */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="sun"></div>
+<div class="cloud cloud-1"></div>
+<div class="cloud cloud-2"></div>
+<div class="cloud cloud-3"></div>
+<div class="grass"></div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-pill"><span class="icon">⭐</span> <span id="score-val">0</span></div>
+  <div class="hud-pill"><span class="icon">❤️</span> <span id="lives-val">❤️❤️❤️</span></div>
+</div>
+<div id="level-badge" class="hidden">Level <span id="level-val">1</span></div>
+
+<!-- Prompt -->
+<div id="prompt-banner" class="hidden">
+  <h2>Pop the balloon with...</h2>
+  <div id="prompt-text">A</div>
+  <div id="prompt-sub">tap the right balloon!</div>
+</div>
+
+<!-- Game canvas -->
+<div id="game-canvas"></div>
+
+<!-- START SCREEN -->
+<div class="screen" id="start-screen">
+  <div class="screen-emoji">🎈</div>
+  <div class="screen-title" style="background: linear-gradient(135deg,#FF6B9D,#FF8C42,#FFD700); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
+    Balloon Pop!
+  </div>
+  <p class="screen-sub">Tap the balloon with the right letter or number before it flies away!</p>
+
+  <div class="mode-grid">
+    <div class="mode-card selected" data-mode="letters" onclick="selectMode(this,'letters')">
+      <span class="mode-icon">🔤</span>
+      <div class="mode-name">Letters</div>
+      <div class="mode-desc">ABC fun</div>
+    </div>
+    <div class="mode-card" data-mode="numbers" onclick="selectMode(this,'numbers')">
+      <span class="mode-icon">🔢</span>
+      <div class="mode-name">Numbers</div>
+      <div class="mode-desc">1 2 3 go!</div>
+    </div>
+    <div class="mode-card" data-mode="vowels" onclick="selectMode(this,'vowels')">
+      <span class="mode-icon">🌟</span>
+      <div class="mode-name">Vowels</div>
+      <div class="mode-desc">A E I O U</div>
+    </div>
+    <div class="mode-card" data-mode="mixed" onclick="selectMode(this,'mixed')">
+      <span class="mode-icon">🎲</span>
+      <div class="mode-name">Mixed</div>
+      <div class="mode-desc">Surprise!</div>
+    </div>
+  </div>
+
+  <button class="big-btn btn-play" onclick="startGame()">Let's Play! 🚀</button>
+</div>
+
+<!-- LEVEL UP SCREEN -->
+<div class="screen hidden" id="level-up-screen">
+  <div class="screen-emoji">🎉</div>
+  <div class="screen-title" style="color:#56C596;">Level Up!</div>
+  <div class="stars-row" id="levelup-stars">⭐⭐⭐</div>
+  <p class="screen-sub">Amazing! You're getting faster!</p>
+  <button class="big-btn btn-green" onclick="nextLevel()">Keep Going! 🎈</button>
+</div>
+
+<!-- GAME OVER SCREEN -->
+<div class="screen hidden" id="game-over-screen">
+  <div class="screen-emoji" id="go-emoji">😢</div>
+  <div class="screen-title" style="color:#FF6B9D;">Game Over!</div>
+  <div class="score-big" id="final-score">0</div>
+  <div class="stars-row" id="final-stars">⭐</div>
+  <p class="screen-sub" id="go-msg">Great try! Play again to beat your score!</p>
+  <div>
+    <button class="big-btn btn-play" onclick="startGame()">Play Again! 🎈</button>
+    <button class="big-btn btn-blue" onclick="showStart()">Menu 🏠</button>
+  </div>
+</div>
+
+<script>
+// ─── Game State ───────────────────────────────────────────────────────────────
+const COLORS = [
+  { body: '#FF6B9D', knot: '#E0457A', shadow: '#C73568' },
+  { body: '#FF8C42', knot: '#E06820', shadow: '#C0501A' },
+  { body: '#FFD700', knot: '#DAA520', shadow: '#B8880F' },
+  { body: '#56C596', knot: '#2E9E72', shadow: '#1A7D56' },
+  { body: '#4ECDC4', knot: '#28A89E', shadow: '#1A8A84' },
+  { body: '#C77DFF', knot: '#9B40E0', shadow: '#7B28C0' },
+  { body: '#FF5757', knot: '#D92020', shadow: '#B51010' },
+  { body: '#4B9FFF', knot: '#1E6FDD', shadow: '#0F50B8' },
+];
+
+const MODES = {
+  letters: () => Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
+  numbers: () => Array.from({length:20},(_,i)=>String(i+1)),
+  vowels:  () => Array.from('AEIOU'),
+  mixed:   () => [...Array.from('ABCDEFGHIJ'), ...Array.from({length:10},(_,i)=>String(i+1))],
+};
+
+let state = {
+  mode: 'letters',
+  score: 0,
+  lives: 3,
+  level: 1,
+  target: '',
+  balloons: [],
+  spawnTimer: null,
+  levelTimer: null,
+  balloonId: 0,
+  levelScore: 0,
+  levelTarget: 10,
+  running: false,
+  highScore: parseInt(localStorage.getItem('bp_hi') || '0'),
+};
+
+function selectMode(el, mode) {
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.mode = mode;
+}
+
+// ─── Spawn & Logic ────────────────────────────────────────────────────────────
+function pickTarget() {
+  const pool = MODES[state.mode]();
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function spawnBalloon() {
+  if (!state.running) return;
+  const pool = MODES[state.mode]();
+  const canvas = document.getElementById('game-canvas');
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+
+  // Decide label: ~40% chance it's the target
+  const isTarget = Math.random() < 0.4;
+  const label = isTarget ? state.target : pool[Math.floor(Math.random() * pool.length)];
+  const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+  const size = 64 + Math.random() * 30;
+  const x = 20 + Math.random() * (W - size - 40);
+  const speed = Math.max(6, 14 - state.level * 1.2); // seconds to float up
+
+  const id = ++state.balloonId;
+  const el = document.createElement('div');
+  el.className = 'balloon';
+  el.id = 'b' + id;
+  el.style.cssText = `left:${x}px; bottom:-160px; width:${size}px;`;
+  el.style.animationDuration = speed + 's';
+
+  el.innerHTML = `
+    <div class="balloon-body" style="width:${size}px;height:${size*1.15}px;background:${color.body};">
+      ${label}
+    </div>
+    <div class="balloon-knot" style="background:${color.knot};"></div>
+    <div class="balloon-string"></div>
+  `;
+
+  el.addEventListener('click', () => popBalloon(el, id, label));
+  el.addEventListener('touchstart', (e) => { e.preventDefault(); popBalloon(el, id, label); }, {passive:false});
+  canvas.appendChild(el);
+  state.balloons.push({ id, label, el });
+
+  // Remove when floated off
+  const dur = speed * 1000;
+  setTimeout(() => {
+    if (!document.getElementById('b' + id)) return;
+    if (el.parentNode) el.parentNode.removeChild(el);
+    state.balloons = state.balloons.filter(b => b.id !== id);
+    // If it was target balloon that escaped
+    if (label === state.target) {
+      loseLife();
+    }
+  }, dur);
+}
+
+function popBalloon(el, id, label) {
+  if (!state.running || el.classList.contains('popping')) return;
+  el.classList.add('popping');
+
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  setTimeout(() => {
+    if (el.parentNode) el.parentNode.removeChild(el);
+    state.balloons = state.balloons.filter(b => b.id !== id);
+  }, 300);
+
+  if (label === state.target) {
+    // Correct!
+    state.score += 10 + state.level * 2;
+    state.levelScore++;
+    burstConfetti(cx, cy, 18);
+    playSound('pop');
+    updateHUD();
+    newTarget();
+    // Level up?
+    if (state.levelScore >= state.levelTarget) {
+      triggerLevelUp();
+    }
+  } else {
+    // Wrong
+    playSound('wrong');
+    el.style.animation = 'wrongShake 0.4s ease-out';
+    loseLife();
+  }
+}
+
+function loseLife() {
+  if (!state.running) return;
+  state.lives--;
+  updateHUD();
+  playSound('oops');
+  if (state.lives <= 0) endGame();
+}
+
+function newTarget() {
+  state.target = pickTarget();
+  const pt = document.getElementById('prompt-text');
+  if (pt) {
+    pt.style.transform = 'scale(1.3)';
+    pt.textContent = state.target;
+    setTimeout(() => pt.style.transform = 'scale(1)', 200);
+  }
+}
+
+function updateHUD() {
+  document.getElementById('score-val').textContent = state.score;
+  const hearts = '❤️'.repeat(Math.max(0, state.lives)) + '🖤'.repeat(Math.max(0, 3 - state.lives));
+  document.getElementById('lives-val').textContent = hearts;
+  document.getElementById('level-val').textContent = state.level;
+}
+
+function triggerLevelUp() {
+  state.running = false;
+  clearInterval(state.spawnTimer);
+  // Clear balloons
+  document.querySelectorAll('.balloon').forEach(b => b.parentNode && b.parentNode.removeChild(b));
+  state.balloons = [];
+
+  const stars = state.levelScore >= state.levelTarget * 1.5 ? '⭐⭐⭐' : state.levelScore >= state.levelTarget ? '⭐⭐' : '⭐';
+  document.getElementById('levelup-stars').textContent = stars;
+  burstConfetti(window.innerWidth/2, window.innerHeight/2, 40);
+  document.getElementById('level-up-screen').classList.remove('hidden');
+}
+
+function nextLevel() {
+  state.level++;
+  state.levelScore = 0;
+  state.levelTarget = 10 + state.level * 3;
+  document.getElementById('level-up-screen').classList.add('hidden');
+  state.running = true;
+  newTarget();
+  const interval = Math.max(800, 2000 - state.level * 150);
+  state.spawnTimer = setInterval(spawnBalloon, interval);
+  spawnBalloon();
+}
+
+// ─── Game Lifecycle ───────────────────────────────────────────────────────────
+function startGame() {
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('game-over-screen').classList.add('hidden');
+  document.getElementById('level-up-screen').classList.add('hidden');
+  document.getElementById('hud').classList.remove('hidden');
+  document.getElementById('level-badge').classList.remove('hidden');
+  document.getElementById('prompt-banner').classList.remove('hidden');
+
+  // Reset
+  state.score = 0;
+  state.lives = 3;
+  state.level = 1;
+  state.levelScore = 0;
+  state.levelTarget = 12;
+  state.balloonId = 0;
+  state.balloons = [];
+  state.running = true;
+  document.querySelectorAll('.balloon').forEach(b => b.parentNode && b.parentNode.removeChild(b));
+
+  updateHUD();
+  newTarget();
+
+  clearInterval(state.spawnTimer);
+  const interval = Math.max(800, 2000 - state.level * 150);
+  state.spawnTimer = setInterval(spawnBalloon, interval);
+  spawnBalloon();
+}
+
+function endGame() {
+  state.running = false;
+  clearInterval(state.spawnTimer);
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('level-badge').classList.add('hidden');
+  document.getElementById('prompt-banner').classList.add('hidden');
+  document.querySelectorAll('.balloon').forEach(b => b.parentNode && b.parentNode.removeChild(b));
+
+  const newHigh = state.score > state.highScore;
+  if (newHigh) { state.highScore = state.score; localStorage.setItem('bp_hi', state.score); }
+
+  document.getElementById('final-score').textContent = state.score;
+  document.getElementById('go-emoji').textContent = state.score >= 60 ? '🎉' : state.score >= 30 ? '😊' : '😢';
+  const stars = state.score >= 100 ? '⭐⭐⭐' : state.score >= 50 ? '⭐⭐' : '⭐';
+  document.getElementById('final-stars').textContent = stars;
+  document.getElementById('go-msg').textContent = newHigh
+    ? `🏆 New High Score: ${state.highScore}! Amazing!`
+    : `Best: ${state.highScore} pts — Keep practising!`;
+
+  burstConfetti(window.innerWidth/2, window.innerHeight/3, 20);
+  document.getElementById('game-over-screen').classList.remove('hidden');
+}
+
+function showStart() {
+  state.running = false;
+  clearInterval(state.spawnTimer);
+  document.querySelectorAll('.balloon').forEach(b => b.parentNode && b.parentNode.removeChild(b));
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('level-badge').classList.add('hidden');
+  document.getElementById('prompt-banner').classList.add('hidden');
+  document.getElementById('game-over-screen').classList.add('hidden');
+  document.getElementById('level-up-screen').classList.add('hidden');
+  document.getElementById('start-screen').classList.remove('hidden');
+}
+
+// ─── Confetti ─────────────────────────────────────────────────────────────────
+const CONF_COLORS = ['#FF6B9D','#FF8C42','#FFD700','#56C596','#4ECDC4','#C77DFF','#FF5757','#4B9FFF'];
+function burstConfetti(x, y, count) {
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti';
+    const angle = (Math.random() * 360);
+    const dist = 30 + Math.random() * 80;
+    const dx = Math.cos(angle * Math.PI / 180) * dist;
+    const dy = -Math.abs(Math.sin(angle * Math.PI / 180) * dist) - 20;
+    p.style.cssText = `
+      left:${x}px; top:${y}px;
+      background:${CONF_COLORS[Math.floor(Math.random()*CONF_COLORS.length)]};
+      width:${6+Math.random()*8}px; height:${6+Math.random()*8}px;
+      animation-duration:${0.6+Math.random()*0.6}s;
+      transform:translate(${dx}px, ${dy}px);
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.parentNode && p.parentNode.removeChild(p), 1200);
+  }
+}
+
+// ─── Sound (Web Audio) ────────────────────────────────────────────────────────
+let audioCtx;
+function getAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  return audioCtx;
+}
+function playSound(type) {
+  const ctx = getAudio();
+  if (!ctx) return;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  const t = ctx.currentTime;
+  if (type === 'pop') {
+    o.type = 'sine';
+    o.frequency.setValueAtTime(523, t);
+    o.frequency.exponentialRampToValueAtTime(1046, t + 0.1);
+    g.gain.setValueAtTime(0.3, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    o.start(t); o.stop(t + 0.25);
+  } else if (type === 'wrong') {
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(200, t);
+    o.frequency.exponentialRampToValueAtTime(80, t + 0.2);
+    g.gain.setValueAtTime(0.15, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    o.start(t); o.stop(t + 0.2);
+  } else if (type === 'oops') {
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(300, t);
+    o.frequency.exponentialRampToValueAtTime(100, t + 0.3);
+    g.gain.setValueAtTime(0.2, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    o.start(t); o.stop(t + 0.3);
+  }
+}
+
+// Unlock audio on first touch
+document.addEventListener('touchstart', () => getAudio(), { once: true });
+document.addEventListener('click', () => getAudio(), { once: true });
+
+// Service Worker registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
