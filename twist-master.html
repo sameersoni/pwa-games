@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Twist Master — 30 Level Tongue Twister Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Poppins:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --stage:#140f0f;
+    --panel:rgba(255,255,255,.05);
+    --panel-solid:#1f1616;
+    --panel-2:#241a1a;
+    --line:rgba(255,255,255,.1);
+    --gold:#ffd166;
+    --coral:#ff6b6b;
+    --crimson:#d7263d;
+    --teal:#4cd6b0;
+    --text:#fff8ef;
+    --muted:#c9b3a4;
+    --r-lg:20px;
+    --shadow:0 10px 34px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; min-height:100%; overflow-x:hidden; color:var(--text);
+    font-family:'Poppins', sans-serif;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(255,209,102,.16), transparent 45%),
+      radial-gradient(ellipse at 15% 100%, rgba(215,38,61,.18), transparent 50%),
+      radial-gradient(ellipse at 90% 100%, rgba(255,107,107,.14), transparent 50%),
+      var(--stage);
+  }
+  #app{position:relative; z-index:1; max-width:640px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column;}
+
+  header.top{padding:22px 18px 14px; display:flex; align-items:flex-end; justify-content:space-between; gap:12px;}
+  header.top h1{
+    font-family:'Bungee', sans-serif; font-weight:400; font-size:22px; margin:0; letter-spacing:.5px;
+    color:var(--gold); text-shadow:0 0 18px rgba(255,209,102,.5);
+  }
+  .subtitle{font-size:11px; color:var(--muted); margin-top:6px; letter-spacing:1px; text-transform:uppercase; font-family:'Share Tech Mono', monospace;}
+  .stat-pill{
+    background:var(--panel); border:1px solid var(--line); border-radius:999px;
+    padding:7px 13px; font-family:'Share Tech Mono', monospace; font-size:13px; color:var(--gold);
+    display:flex; align-items:center; gap:6px; white-space:nowrap; backdrop-filter:blur(6px);
+  }
+
+  /* ---------- MAP ---------- */
+  #screen-map{padding:4px 16px 40px;}
+  .progress-bar-wrap{margin:6px 4px 20px;}
+  .progress-track{height:9px; border-radius:6px; background:rgba(255,255,255,.08); overflow:hidden; border:1px solid var(--line);}
+  .progress-fill{height:100%; background:linear-gradient(90deg,var(--gold),var(--crimson)); transition:width .4s ease; box-shadow:0 0 10px rgba(255,209,102,.5);}
+  .progress-label{font-size:11px; color:var(--muted); margin-top:6px; font-family:'Share Tech Mono',monospace;}
+
+  .tier-block{margin-bottom:26px;}
+  .tier-head{display:flex; align-items:center; gap:10px; margin:0 2px 12px;}
+  .tier-head .dot{width:10px; height:10px; border-radius:50%;}
+  .tier-head h2{font-family:'Bungee', sans-serif; font-weight:400; font-size:14px; margin:0; color:var(--text); letter-spacing:.3px;}
+  .tier-head .range{font-size:11px; color:var(--muted); font-family:'Share Tech Mono', monospace; margin-left:auto;}
+
+  .level-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:10px;}
+  .lvl-tile{
+    aspect-ratio:1; border-radius:14px; border:1px solid var(--line); background:var(--panel);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(6px);
+    font-family:'Share Tech Mono', monospace; font-weight:600; font-size:15px; color:var(--text);
+    position:relative; cursor:pointer; transition:transform .12s ease;
+  }
+  .lvl-tile:active{transform:scale(.94);}
+  .lvl-tile.locked{color:var(--muted); background:rgba(255,255,255,.02); cursor:default;}
+  .lvl-tile.nailed{box-shadow:0 0 0 1px var(--gold) inset, 0 0 16px -2px var(--gold);}
+  .lvl-tile.attempted:not(.nailed){box-shadow:0 0 0 1px var(--muted) inset;}
+  .lvl-tile .badge{position:absolute; bottom:5px; font-size:11px;}
+  .lvl-tile .lock-icon{opacity:.5; font-size:13px;}
+
+  /* ---------- GAME ---------- */
+  #screen-game{padding:14px 16px 40px; display:none; flex-direction:column; gap:14px; flex:1;}
+  .game-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .btn-back{
+    background:var(--panel); border:1px solid var(--line); color:var(--text);
+    border-radius:10px; padding:9px 12px; font-family:'Poppins'; font-weight:600; font-size:13px; cursor:pointer;
+  }
+  .lvl-title{font-family:'Bungee', sans-serif; font-size:13px; font-weight:400; text-align:center; color:var(--gold);}
+  .lvl-title small{display:block; font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); font-weight:500; letter-spacing:1px; margin-top:3px;}
+  .game-meta{display:flex; justify-content:center; align-items:center; gap:18px; font-family:'Share Tech Mono', monospace; font-size:20px; color:var(--muted);}
+  .game-meta .timer{color:var(--teal); font-weight:700;}
+
+  .prompter-frame{position:relative;}
+  .prompter-viewport{
+    position:relative; height:250px; overflow:hidden; border-radius:18px;
+    background:var(--panel-solid); border:1px solid rgba(255,209,102,.25);
+    box-shadow:var(--shadow), inset 0 0 40px rgba(0,0,0,.5);
+    -webkit-mask-image:linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+    mask-image:linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+  }
+  .prompter-text{
+    position:absolute; left:0; right:0; text-align:center; padding:0 22px;
+    font-family:'Poppins', sans-serif; font-weight:600; font-size:26px; line-height:1.5;
+    color:#fff; will-change:transform;
+  }
+  .prompter-marker{
+    position:absolute; top:50%; left:10px; right:10px; height:2px; transform:translateY(-50%);
+    background:linear-gradient(90deg, transparent, var(--coral), transparent); z-index:3; pointer-events:none;
+  }
+  .ready-note{text-align:center; font-size:12px; color:var(--muted); font-family:'Share Tech Mono',monospace;}
+
+  .controls-row{display:flex; gap:10px; justify-content:center;}
+  .btn-big{
+    padding:14px 22px; border-radius:14px; border:none; font-family:'Bungee', sans-serif; font-weight:400;
+    font-size:14px; cursor:pointer; letter-spacing:.3px;
+  }
+  .btn-start{background:linear-gradient(90deg,var(--gold),var(--coral)); color:#241a1a;}
+  .btn-start:disabled{opacity:.4;}
+
+  .result-panel{display:none; flex-direction:column; gap:14px; background:var(--panel-2); border:1px solid var(--line); border-radius:16px; padding:18px;}
+  .result-panel.show{display:flex;}
+  .result-title{text-align:center; font-family:'Share Tech Mono',monospace; font-size:13px; color:var(--muted);}
+  .rate-row{display:flex; gap:10px;}
+  .rate-btn{
+    flex:1; padding:14px 8px; border-radius:12px; border:1px solid var(--line); background:var(--panel);
+    color:var(--text); font-family:'Poppins'; font-weight:600; font-size:14px; cursor:pointer; text-align:center;
+  }
+  .rate-btn.selected.nailed{background:rgba(255,209,102,.22); border-color:var(--gold); color:var(--gold);}
+  .rate-btn.selected.missed{background:rgba(215,38,61,.22); border-color:var(--crimson); color:#ff8f9c;}
+  .action-row{display:flex; gap:10px;}
+  .action-row button{flex:1; padding:13px; border-radius:12px; border:none; font-family:'Poppins'; font-weight:700; cursor:pointer; font-size:14px;}
+  .btn-repeat{background:rgba(255,255,255,.09); color:var(--text);}
+  .btn-next{background:linear-gradient(90deg,var(--teal),var(--gold)); color:#141414;}
+
+  .feedback-note{text-align:center; font-size:11px; color:var(--muted); margin-top:auto; padding-top:16px; line-height:1.5;}
+  .feedback-note b{color:var(--coral); font-weight:700;}
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(10,5,5,.78); backdrop-filter:blur(3px);
+    display:none; align-items:center; justify-content:center; z-index:20; padding:20px;
+  }
+  .modal-card{
+    background:var(--panel-2); border-radius:var(--r-lg); padding:28px 24px; text-align:center;
+    max-width:340px; width:100%; box-shadow:var(--shadow); border:1px solid rgba(255,209,102,.3);
+  }
+  .modal-card h2{font-family:'Bungee', sans-serif; font-weight:400; font-size:20px; margin:0 0 10px; color:var(--gold);}
+  .modal-card p{color:var(--muted); font-size:13px; margin:0 0 18px;}
+  .modal-actions button{width:100%; padding:12px; border-radius:12px; border:none; font-family:'Poppins'; font-weight:700; cursor:pointer; font-size:14px; background:linear-gradient(90deg,var(--gold),var(--coral)); color:#241a1a;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="top">
+    <div>
+      <h1>TWIST MASTER</h1>
+      <div class="subtitle">30 levels · warm-up to tongue-tied</div>
+    </div>
+    <div class="stat-pill">🎯 <span id="nailedCount">0</span>/30</div>
+  </header>
+
+  <section id="screen-map">
+    <div class="progress-bar-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-label" id="progressLabel">0 / 30 levels attempted</div>
+    </div>
+    <div id="tiersContainer"></div>
+  </section>
+
+  <section id="screen-game">
+    <div class="game-top">
+      <button class="btn-back" id="btnBack">← Level Map</button>
+      <div class="lvl-title" id="lvlTitle">Level 1<small>WARM-UP</small></div>
+      <div style="width:78px"></div>
+    </div>
+    <div class="game-meta">
+      <span>⏱ <span class="timer" id="timerLabel">0.0s</span></span>
+    </div>
+
+    <div class="prompter-frame">
+      <div class="prompter-viewport" id="viewport">
+        <div class="prompter-text" id="promptText"></div>
+      </div>
+      <div class="prompter-marker"></div>
+    </div>
+    <div class="ready-note" id="readyNote">Get ready — tap Start, then read aloud as it scrolls up</div>
+
+    <div class="controls-row">
+      <button class="btn-big btn-start" id="btnStart">▶ Start Reading</button>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+      <div class="result-title" id="resultTime">Finished in 0.0s — how did that go?</div>
+      <div class="rate-row">
+        <button class="rate-btn" id="rateNailed">🎯 Nailed it!</button>
+        <button class="rate-btn" id="rateMissed">😅 Missed it</button>
+      </div>
+      <div class="action-row">
+        <button class="btn-repeat" id="btnRepeat">↺ Repeat</button>
+        <button class="btn-next" id="btnNext">Next Level →</button>
+      </div>
+    </div>
+
+    <div class="feedback-note">Want it different? Tell Claude — e.g. <b>“slow the scroll down”</b>, <b>“add my own twisters”</b>, or <b>“add a countdown before start”</b> and I'll rebuild this on the spot.</div>
+  </section>
+
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card">
+    <h2>🏆 All 30 Twisted!</h2>
+    <p>You've made it through every level, from warm-up whispers to full tongue-tied chaos. Take a bow.</p>
+    <div class="modal-actions"><button id="modalClose">Back to Level Map</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- CONTENT: 30 TWISTERS, EASY -> HARD ---------------- */
+  const TWISTERS = [
+    "She sells seashells by the seashore.",
+    "Toy boat. Toy boat. Toy boat.",
+    "Red lorry, yellow lorry.",
+    "Fuzzy Wuzzy was a bear. Fuzzy Wuzzy had no hair.",
+    "Betty bought a bit of butter.",
+    "Six slippery snails slid slowly seaward.",
+    "A big black bug bit a big black bear.",
+    "Peter Piper picked a peck of pickled peppers.",
+    "Unique New York, unique New York, unique New York.",
+    "How much wood would a woodchuck chuck if a woodchuck could chuck wood?",
+
+    "I scream, you scream, we all scream for ice cream.",
+    "Fred fed Ted bread, and Ted fed Fred bread.",
+    "How can a clam cram in a clean cream can?",
+    "A proper copper coffee pot.",
+    "Which wristwatches are Swiss wristwatches?",
+    "Truly rural, truly rural, truly rural.",
+    "Denise sees the fleece, Denise sees the fleas.",
+    "Can you can a can as a canner can can a can?",
+    "The sixth sick sheikh's sixth sheep's sick.",
+    "The thirty-three thieves thought that they thrilled the throne throughout Thursday.",
+
+    "The Leith police dismisseth us.",
+    "Irish wristwatch, Swiss wristwatch.",
+    "Pad kid poured curd pulled cod.",
+    "Six thick thistle sticks, six thick thistles stick.",
+    "If two witches would watch two watches, which witch would watch which watch?",
+    "Imagine an imaginary menagerie manager managing an imaginary menagerie.",
+    "A skunk sat on a stump and thunk the stump stunk, but the stump thunk the skunk stunk.",
+    "I saw Susie sitting in a shoeshine shop, where she shines she sits, and where she sits she shines.",
+    "Brisk brave brigadiers brandished broad bright blades, blunderbusses, and bludgeons.",
+    "Whether the weather be fine, or whether the weather be not, whether the weather be cold, or whether the weather be hot, we'll weather the weather whatever the weather, whether we like it or not."
+  ];
+
+  const TIERS = [
+    { name:"Warm-Up",   color:"#ffd166", from:1,  to:10, baseSpeed:34, increment:3 },
+    { name:"Rehearsal", color:"#ff6b6b", from:11, to:20, baseSpeed:66, increment:4 },
+    { name:"Show Time", color:"#d7263d", from:21, to:30, baseSpeed:112, increment:6 }
+  ];
+  function tierForLevel(n){ return TIERS.find(t=>n>=t.from && n<=t.to); }
+  function levelSpeed(n){
+    const tier = tierForLevel(n);
+    const idx = n - tier.from;
+    return tier.baseSpeed + idx*tier.increment; // px per second
+  }
+
+  /* ---------------- STORAGE ---------------- */
+  const STORAGE_KEY = "twistmaster-progress-v1";
+  let progress = { levels:{} }; // levels[n] = { rating:'nailed'|'missed'|null, bestTimeSec, attempts }
+
+  async function loadProgress(){
+    try{
+      const res = await window.storage.get(STORAGE_KEY, false);
+      if(res && res.value) progress = JSON.parse(res.value);
+    }catch(e){ progress = { levels:{} }; }
+  }
+  async function saveProgress(){
+    try{ await window.storage.set(STORAGE_KEY, JSON.stringify(progress), false); }
+    catch(e){ /* non-fatal */ }
+  }
+  function isUnlocked(n){ return n === 1 || !!progress.levels[n-1]; }
+  function nailedCount(){ return Object.values(progress.levels).filter(l=>l.rating==='nailed').length; }
+  function attemptedCount(){ return Object.keys(progress.levels).length; }
+
+  /* ---------------- MAP RENDERING ---------------- */
+  const tiersContainer = document.getElementById('tiersContainer');
+  const nailedCountEl = document.getElementById('nailedCount');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+
+  function renderMap(){
+    nailedCountEl.textContent = nailedCount();
+    const attempted = attemptedCount();
+    progressFill.style.width = (attempted/30*100) + "%";
+    progressLabel.textContent = `${attempted} / 30 levels attempted`;
+
+    tiersContainer.innerHTML = "";
+    TIERS.forEach(tier=>{
+      const block = document.createElement('div');
+      block.className = 'tier-block';
+      block.innerHTML = `<div class="tier-head">
+          <span class="dot" style="background:${tier.color}"></span>
+          <h2>${tier.name}</h2>
+          <span class="range">Lv ${tier.from}–${tier.to}</span>
+        </div>
+        <div class="level-grid" id="grid-${tier.from}"></div>`;
+      tiersContainer.appendChild(block);
+      const gridEl = block.querySelector('.level-grid');
+      for(let n=tier.from; n<=tier.to; n++){
+        const unlocked = isUnlocked(n);
+        const rec = progress.levels[n];
+        const tile = document.createElement('div');
+        tile.className = 'lvl-tile'
+          + (unlocked ? '' : ' locked')
+          + (rec ? ' attempted' : '')
+          + (rec && rec.rating === 'nailed' ? ' nailed' : '');
+        tile.innerHTML = unlocked
+          ? `${n}${rec ? `<div class="badge">${rec.rating === 'nailed' ? '🎯' : rec.rating === 'missed' ? '😅' : '·'}</div>` : ''}`
+          : `<span class="lock-icon">🔒</span>`;
+        if(unlocked) tile.addEventListener('click', ()=> startLevel(n));
+        gridEl.appendChild(tile);
+      }
+    });
+  }
+
+  /* ---------------- GAME STATE ---------------- */
+  const screenMap = document.getElementById('screen-map');
+  const screenGame = document.getElementById('screen-game');
+  const viewport = document.getElementById('viewport');
+  const promptText = document.getElementById('promptText');
+  const lvlTitleEl = document.getElementById('lvlTitle');
+  const timerLabel = document.getElementById('timerLabel');
+  const readyNote = document.getElementById('readyNote');
+  const btnStart = document.getElementById('btnStart');
+  const resultPanel = document.getElementById('resultPanel');
+  const resultTime = document.getElementById('resultTime');
+  const rateNailed = document.getElementById('rateNailed');
+  const rateMissed = document.getElementById('rateMissed');
+  const btnRepeat = document.getElementById('btnRepeat');
+  const btnNext = document.getElementById('btnNext');
+
+  let current = null; // { level, tier, text, speed }
+  let textHeight = 0, viewportHeight = 0;
+  let timerRAF = null, startTime = 0, finalTime = 0;
+  let chosenRating = null;
+
+  function startLevel(n){
+    const tier = tierForLevel(n);
+    current = { level:n, tier, text: TWISTERS[n-1], speed: levelSpeed(n) };
+    chosenRating = null;
+    lvlTitleEl.innerHTML = `Level ${n}<small>${tier.name.toUpperCase()}</small>`;
+    resultPanel.classList.remove('show');
+    rateNailed.classList.remove('selected','nailed');
+    rateMissed.classList.remove('selected','missed');
+    readyNote.style.display = 'block';
+    btnStart.style.display = 'inline-block';
+    btnStart.disabled = false;
+    timerLabel.textContent = "0.0s";
+    screenMap.style.display = 'none';
+    screenGame.style.display = 'flex';
+    prepareText();
+  }
+
+  function prepareText(){
+    promptText.textContent = current.text;
+    promptText.style.transition = 'none';
+    promptText.style.transform = 'translateY(0px)';
+    // measure after layout
+    requestAnimationFrame(()=>{
+      textHeight = promptText.offsetHeight;
+      viewportHeight = viewport.clientHeight;
+      promptText.style.transform = `translateY(${viewportHeight}px)`;
+    });
+  }
+
+  function startTimer(){
+    startTime = performance.now();
+    const tick = ()=>{
+      const elapsed = (performance.now() - startTime)/1000;
+      timerLabel.textContent = elapsed.toFixed(1) + "s";
+      timerRAF = requestAnimationFrame(tick);
+    };
+    timerRAF = requestAnimationFrame(tick);
+  }
+  function stopTimer(){
+    cancelAnimationFrame(timerRAF);
+    finalTime = (performance.now() - startTime)/1000;
+    timerLabel.textContent = finalTime.toFixed(1) + "s";
+  }
+
+  function onScrollDone(){
+    stopTimer();
+    resultTime.textContent = `Finished in ${finalTime.toFixed(1)}s — how did that go?`;
+    resultPanel.classList.add('show');
+  }
+
+  btnStart.addEventListener('click', ()=>{
+    readyNote.style.display = 'none';
+    btnStart.style.display = 'none';
+    resultPanel.classList.remove('show');
+    startTimer();
+    requestAnimationFrame(()=>{
+      const totalDistance = viewportHeight + textHeight;
+      const duration = totalDistance / current.speed;
+      promptText.style.transition = `transform ${duration}s linear`;
+      promptText.style.transform = `translateY(-${textHeight}px)`;
+    });
+    promptText.addEventListener('transitionend', onScrollDone, { once:true });
+  });
+
+  rateNailed.addEventListener('click', ()=>{
+    chosenRating = 'nailed';
+    rateNailed.classList.add('selected','nailed');
+    rateMissed.classList.remove('selected','missed');
+  });
+  rateMissed.addEventListener('click', ()=>{
+    chosenRating = 'missed';
+    rateMissed.classList.add('selected','missed');
+    rateNailed.classList.remove('selected','nailed');
+  });
+
+  function saveAttempt(){
+    const n = current.level;
+    const existing = progress.levels[n];
+    const attempts = (existing ? existing.attempts : 0) + 1;
+    const bestTimeSec = existing ? Math.min(existing.bestTimeSec, finalTime) : finalTime;
+    let rating = chosenRating || (existing ? existing.rating : null);
+    if(chosenRating === 'nailed' || (existing && existing.rating === 'nailed')) rating = 'nailed';
+    progress.levels[n] = { rating, bestTimeSec, attempts };
+    saveProgress();
+  }
+
+  btnRepeat.addEventListener('click', ()=>{
+    saveAttempt();
+    chosenRating = null;
+    rateNailed.classList.remove('selected','nailed');
+    rateMissed.classList.remove('selected','missed');
+    resultPanel.classList.remove('show');
+    readyNote.style.display = 'block';
+    btnStart.style.display = 'inline-block';
+    btnStart.disabled = false;
+    timerLabel.textContent = "0.0s";
+    prepareText();
+  });
+
+  btnNext.addEventListener('click', ()=>{
+    saveAttempt();
+    if(current.level < 30){
+      startLevel(current.level + 1);
+    } else {
+      screenGame.style.display = 'none';
+      document.getElementById('modalOverlay').style.display = 'flex';
+    }
+  });
+
+  document.getElementById('modalClose').addEventListener('click', ()=>{
+    document.getElementById('modalOverlay').style.display = 'none';
+    screenMap.style.display = 'block';
+    renderMap();
+  });
+
+  document.getElementById('btnBack').addEventListener('click', ()=>{
+    cancelAnimationFrame(timerRAF);
+    screenGame.style.display = 'none';
+    screenMap.style.display = 'block';
+    renderMap();
+  });
+
+  window.addEventListener('resize', ()=>{
+    if(screenGame.style.display === 'flex' && current && btnStart.style.display !== 'none'){
+      prepareText();
+    }
+  });
+
+  /* ---------------- INIT ---------------- */
+  (async function init(){
+    await loadProgress();
+    renderMap();
+  })();
+
+})();
+</script>
+</body>
+</html>

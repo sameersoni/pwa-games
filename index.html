@@ -98,7 +98,7 @@
     /* ── Game cards grid ── */
     .games {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(4, 1fr);
       gap: clamp(16px, 3vw, 32px);
       width: 100%;
     }
@@ -148,6 +148,26 @@
     .card-kitchen:hover {
       box-shadow: 0 12px 60px rgba(0, 229, 204, 0.45);
       border-color: rgba(0, 229, 204, 0.5);
+    }
+
+    /* Word Search card */
+    .card-word {
+      background: linear-gradient(160deg, #25144D 0%, #42206D 45%, #D94F70 100%);
+      box-shadow: 0 8px 40px rgba(217, 79, 112, 0.3);
+    }
+    .card-word:hover {
+      box-shadow: 0 12px 60px rgba(217, 79, 112, 0.5);
+      border-color: rgba(255, 210, 63, 0.5);
+    }
+
+    /* Tongue Twister card */
+    .card-twister {
+      background: linear-gradient(160deg, #4A1942 0%, #8B2F5B 45%, #F28F3B 100%);
+      box-shadow: 0 8px 40px rgba(242, 143, 59, 0.3);
+    }
+    .card-twister:hover {
+      box-shadow: 0 12px 60px rgba(242, 143, 59, 0.5);
+      border-color: rgba(255, 209, 102, 0.5);
     }
 
     /* ── Card scene illustration ── */
@@ -221,6 +241,12 @@
     .card-kitchen .card-label {
       background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 80%, transparent 100%);
     }
+    .card-word .card-label {
+      background: linear-gradient(to top, rgba(37, 20, 77, 0.94) 0%, rgba(37, 20, 77, 0.6) 80%, transparent 100%);
+    }
+    .card-twister .card-label {
+      background: linear-gradient(to top, rgba(74, 25, 66, 0.94) 0%, rgba(74, 25, 66, 0.6) 80%, transparent 100%);
+    }
 
     .card-label h2 {
       font-family: 'Fredoka One', cursive;
@@ -241,6 +267,12 @@
 
     .card-kitchen .card-label h2 { color: #00E5CC; }
     .card-kitchen .card-label span { color: rgba(0, 229, 204, 0.65); }
+
+    .card-word .card-label h2 { color: #FFD23F; }
+    .card-word .card-label span { color: rgba(255, 210, 63, 0.75); }
+
+    .card-twister .card-label h2 { color: #FFD166; }
+    .card-twister .card-label span { color: rgba(255, 209, 102, 0.75); }
 
     /* ── Play button pill ── */
     .play-btn {
@@ -268,6 +300,16 @@
       background: linear-gradient(135deg, #00E5CC, #4ECDC4);
       color: #0B0E2D;
       box-shadow: 0 4px 20px rgba(0, 229, 204, 0.5);
+    }
+    .card-word .play-btn {
+      background: linear-gradient(135deg, #FFD23F, #FF8C42);
+      color: #25144D;
+      box-shadow: 0 4px 20px rgba(255, 210, 63, 0.5);
+    }
+    .card-twister .play-btn {
+      background: linear-gradient(135deg, #FFD166, #FF6B6B);
+      color: #4A1942;
+      box-shadow: 0 4px 20px rgba(255, 209, 102, 0.5);
     }
 
     /* ── Footer ── */
@@ -314,6 +356,26 @@
         <div class="card-label">
           <h2>Shape Kitchen</h2>
           <span>Match &amp; Learn</span>
+        </div>
+      </a>
+
+      <!-- Word Search -->
+      <a class="game-card card-word" href="word-trail.html">
+        <div class="card-scene">🔤</div>
+        <div class="play-btn">▶ Play</div>
+        <div class="card-label">
+          <h2>Word Search</h2>
+          <span>Find &amp; Learn</span>
+        </div>
+      </a>
+
+      <!-- Tongue Twister -->
+      <a class="game-card card-twister" href="twist-master.html">
+        <div class="card-scene">👅</div>
+        <div class="play-btn">▶ Play</div>
+        <div class="card-label">
+          <h2>Tongue Twister</h2>
+          <span>Speak &amp; Practice</span>
         </div>
       </a>
 
