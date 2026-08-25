@@ -10,6 +10,12 @@ Tap the balloon showing the correct letter or number before it flies away. Suppo
 ### 🚀 Shape Kitchen
 Run a galactic diner — cook alien orders by adding the right shapes and counts to the pot.
 
+### 🔤 Word Search
+Find hidden words across 100 sectors while exploring progressively challenging word-search levels.
+
+### 👅 Tongue Twister
+Practice tongue twisters across 30 levels and improve speaking speed and accuracy.
+
 ## Usage
 
 Open `index.html` in a browser to reach the game hub, then tap a game to play.
@@ -22,6 +28,8 @@ To use offline on iPad: open in Safari → Share → **Add to Home Screen**.
 index.html        # Game hub landing page
 balloon-pop.html  # Balloon Pop game
 shape-kitchen.html# Shape Kitchen game
+word-trail.html    # Word Search game
+twist-master.html   # Tongue Twister game
 manifest.json     # PWA manifest
 sw.js             # Service worker (offline caching)
 icons/icon.svg    # App icon
