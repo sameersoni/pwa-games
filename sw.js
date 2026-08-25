@@ -1,9 +1,13 @@
-const CACHE = 'pwa-games-v1';
+const CACHE = 'pwa-games-v2';
 const URLS = [
   './',
   './index.html',
+  './common.css',
+  './common.js',
   './balloon-pop.html',
   './shape-kitchen.html',
+  './word-trail.html',
+  './twist-master.html',
   './manifest.json',
   './icons/icon.svg',
 ];

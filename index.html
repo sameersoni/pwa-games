@@ -9,16 +9,11 @@
   <meta name="theme-color" content="#1a1a2e"/>
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icons/icon.svg"/>
+  <link rel="stylesheet" href="common.css"/>
   <title>🎮 Game Hub</title>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet"/>
 
   <style>
-    *, *::before, *::after {
-      margin: 0; padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
     :root {
       --bg-top:    #0f0c29;
       --bg-mid:    #1a1a4e;
@@ -123,6 +118,7 @@
       transition: transform 0.18s cubic-bezier(.34,1.56,.64,1),
                   box-shadow 0.18s ease,
                   border-color 0.18s ease;
+      transform: translateZ(0);
       -webkit-transform: translateZ(0); /* GPU layer on iOS */
     }
 
@@ -385,6 +381,7 @@
 
   </div>
 
+  <script src="common.js"></script>
   <script>
     // ── Star field
     const starsEl = document.getElementById('stars');
@@ -448,12 +445,6 @@
       card.addEventListener('touchstart', () => {}, { passive: true });
     });
 
-    // ── Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
-      });
-    }
 </script>
 </body>
 </html>

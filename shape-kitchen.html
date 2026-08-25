@@ -8,7 +8,8 @@
   <meta name="apple-mobile-web-app-title" content="Shape Kitchen"/>
   <meta name="theme-color" content="#0B0E2D"/>
   <link rel="manifest" href="manifest.json"/>
-  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
+  <link rel="apple-touch-icon" href="icons/icon.svg"/>
+  <link rel="stylesheet" href="common.css"/>
   <title>🚀 Shape Kitchen</title>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
 
@@ -34,8 +35,6 @@
       --s-purple: #C77DFF;
       --s-orange: #FF8C42;
     }
-
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
     html, body {
       width:100%; height:100dvh; overflow:hidden;
@@ -69,12 +68,6 @@
     .nb3{ width:180px;height:180px;background:var(--nebula-purple);top:40%;   left:60%;   }
 
     /* ── Layout ── */
-    #app {
-      position:relative; z-index:1;
-      width:100%; height:100dvh;
-      display:flex; flex-direction:column;
-    }
-
     /* ── SCREENS ── */
     .screen {
       position:absolute; inset:0; z-index:50;
@@ -423,7 +416,7 @@
 <!-- Home button -->
 <button id="home-btn">🏠 Home</button>
 
-<div id="app">
+<div id="app" class="app-shell">
   <!-- HUD -->
   <div id="hud" style="display:none">
     <div class="hud-left">
@@ -516,6 +509,7 @@
   </div>
 </div>
 
+<script src="common.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════
 //  STARFIELD
@@ -675,6 +669,19 @@ const G = {
   best: parseInt(localStorage.getItem('sk_best')||'0'),
   mistakes: 0,
 };
+const PROGRESS_KEY = 'shape-kitchen-progress-v1';
+
+function loadSavedProgress() {
+  return GameStorage.read(PROGRESS_KEY, null);
+}
+
+function saveProgress() {
+  GameStorage.write(PROGRESS_KEY, { level: G.level, orderNum: G.orderNum, score: G.score });
+}
+
+function clearProgress() {
+  GameStorage.remove(PROGRESS_KEY);
+}
 
 // ═══════════════════════════════════════════════════════
 //  AUDIO
@@ -887,7 +894,15 @@ function hideFeedback() {
 //  GAME FLOW
 // ═══════════════════════════════════════════════════════
 function startGame() {
-  G.score=0; G.lives=3; G.level=1; G.orderNum=0; G.mistakes=0; G.pot=[];
+  const saved = loadSavedProgress();
+  const resume = saved && saved.level > 1 && confirm(`Resume Level ${saved.level}?\nChoose Cancel to start from the beginning.`);
+  G.score=resume ? saved.score : 0;
+  G.lives=3;
+  G.level=resume ? saved.level : 1;
+  G.orderNum=0;
+  G.mistakes=0;
+  G.pot=[];
+  if(!resume) clearProgress();
   document.getElementById('start-screen').classList.add('hidden');
   document.getElementById('result-screen').classList.add('hidden');
   document.getElementById('hud').style.display='flex';
@@ -906,6 +921,7 @@ function nextOrder() {
     G.level = Math.min(G.level+1, 4);
     playLevelUp();
   }
+  saveProgress();
 
   if(G.orderNum > G.totalOrders) { endGame(); return; }
 
@@ -971,14 +987,10 @@ function burstConfetti(count=30) {
 }
 
 document.getElementById('home-btn').addEventListener('click', () => {
-  if (G.running && !confirm('Leave game? Your progress will be lost.')) return;
+  if (G.running) saveProgress();
   window.location.href = 'index.html';
 });
 
-// SW
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
-}
 </script>
 </body>
 </html>

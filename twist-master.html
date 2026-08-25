@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Twist Master — 30 Level Tongue Twister Trainer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="common.css">
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Poppins:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -22,8 +23,6 @@
     --r-lg:20px;
     --shadow:0 10px 34px rgba(0,0,0,.5);
   }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{height:100%;}
   body{
     margin:0; min-height:100%; overflow-x:hidden; color:var(--text);
     font-family:'Poppins', sans-serif;
@@ -33,7 +32,6 @@
       radial-gradient(ellipse at 90% 100%, rgba(255,107,107,.14), transparent 50%),
       var(--stage);
   }
-  #app{position:relative; z-index:1; max-width:640px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column;}
 
   header.top{padding:22px 18px 14px; display:flex; align-items:flex-end; justify-content:space-between; gap:12px;}
   header.top h1{
@@ -45,6 +43,12 @@
     background:var(--panel); border:1px solid var(--line); border-radius:999px;
     padding:7px 13px; font-family:'Share Tech Mono', monospace; font-size:13px; color:var(--gold);
     display:flex; align-items:center; gap:6px; white-space:nowrap; backdrop-filter:blur(6px);
+  }
+  .header-right{display:flex; align-items:center; gap:8px;}
+  .icon-btn{
+    background:var(--panel); border:1px solid var(--line); border-radius:999px;
+    padding:7px 12px; font-family:'Poppins', sans-serif; font-size:13px; color:var(--text);
+    cursor:pointer; white-space:nowrap;
   }
 
   /* ---------- MAP ---------- */
@@ -145,14 +149,17 @@
 </style>
 </head>
 <body>
-<div id="app">
+<div id="app" class="app-shell">
 
   <header class="top">
     <div>
       <h1>TWIST MASTER</h1>
       <div class="subtitle">30 levels · warm-up to tongue-tied</div>
     </div>
-    <div class="stat-pill">🎯 <span id="nailedCount">0</span>/30</div>
+    <div class="header-right">
+      <div class="stat-pill">🎯 <span id="nailedCount">0</span>/30</div>
+      <button class="icon-btn" id="btnHome" title="Home">🏠 Home</button>
+    </div>
   </header>
 
   <section id="screen-map">
@@ -210,6 +217,7 @@
   </div>
 </div>
 
+<script src="common.js"></script>
 <script>
 (function(){
   "use strict";
@@ -250,6 +258,16 @@
     "Whether the weather be fine, or whether the weather be not, whether the weather be cold, or whether the weather be hot, we'll weather the weather whatever the weather, whether we like it or not."
   ];
 
+  function variantText(text){
+    const variants = [
+      text,
+      text.replace(/\./g, '!'),
+      text.replace(/, /g, ' — '),
+      text.replace(/\b([A-Za-z]+)\b/g, (word, index) => index % 2 ? word.toLowerCase() : word)
+    ];
+    return variants[Math.floor(Math.random() * variants.length)];
+  }
+
   const TIERS = [
     { name:"Warm-Up",   color:"#ffd166", from:1,  to:10, baseSpeed:34, increment:3 },
     { name:"Rehearsal", color:"#ff6b6b", from:11, to:20, baseSpeed:66, increment:4 },
@@ -266,16 +284,8 @@
   const STORAGE_KEY = "twistmaster-progress-v1";
   let progress = { levels:{} }; // levels[n] = { rating:'nailed'|'missed'|null, bestTimeSec, attempts }
 
-  async function loadProgress(){
-    try{
-      const res = await window.storage.get(STORAGE_KEY, false);
-      if(res && res.value) progress = JSON.parse(res.value);
-    }catch(e){ progress = { levels:{} }; }
-  }
-  async function saveProgress(){
-    try{ await window.storage.set(STORAGE_KEY, JSON.stringify(progress), false); }
-    catch(e){ /* non-fatal */ }
-  }
+  function loadProgress(){ progress = GameStorage.read(STORAGE_KEY, { levels:{} }); }
+  function saveProgress(){ GameStorage.write(STORAGE_KEY, progress); }
   function isUnlocked(n){ return n === 1 || !!progress.levels[n-1]; }
   function nailedCount(){ return Object.values(progress.levels).filter(l=>l.rating==='nailed').length; }
   function attemptedCount(){ return Object.keys(progress.levels).length; }
@@ -344,7 +354,7 @@
 
   function startLevel(n){
     const tier = tierForLevel(n);
-    current = { level:n, tier, text: TWISTERS[n-1], speed: levelSpeed(n) };
+    current = { level:n, tier, text: variantText(TWISTERS[n-1]), speed: levelSpeed(n) };
     chosenRating = null;
     lvlTitleEl.innerHTML = `Level ${n}<small>${tier.name.toUpperCase()}</small>`;
     resultPanel.classList.remove('show');
@@ -464,6 +474,10 @@
     renderMap();
   });
 
+  document.getElementById('btnHome').addEventListener('click', ()=>{
+    window.location.href = 'index.html';
+  });
+
   window.addEventListener('resize', ()=>{
     if(screenGame.style.display === 'flex' && current && btnStart.style.display !== 'none'){
       prepareText();
@@ -471,8 +485,8 @@
   });
 
   /* ---------------- INIT ---------------- */
-  (async function init(){
-    await loadProgress();
+  (function init(){
+    loadProgress();
     renderMap();
   })();
 

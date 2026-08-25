@@ -26,6 +26,8 @@ To use offline on iPad: open in Safari → Share → **Add to Home Screen**.
 
 ```
 index.html        # Game hub landing page
+common.css        # Shared layout and browser styles
+common.js         # Shared storage and service-worker setup
 balloon-pop.html  # Balloon Pop game
 shape-kitchen.html# Shape Kitchen game
 word-trail.html    # Word Search game

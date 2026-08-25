@@ -8,7 +8,8 @@
   <meta name="apple-mobile-web-app-title" content="Balloon Pop"/>
   <meta name="theme-color" content="#FF6B9D"/>
   <link rel="manifest" href="manifest.json"/>
-  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
+  <link rel="apple-touch-icon" href="icons/icon.svg"/>
+  <link rel="stylesheet" href="common.css"/>
   <title>Balloon Pop! 🎈</title>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet"/>
   <style>
@@ -26,8 +27,6 @@
       --pop-purple: #C77DFF;
       --pop-red: #FF5757;
     }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     body {
       font-family: 'Nunito', sans-serif;
@@ -490,6 +489,7 @@
   </div>
 </div>
 
+<script src="common.js"></script>
 <script>
 // ─── Game State ───────────────────────────────────────────────────────────────
 const COLORS = [
@@ -525,6 +525,19 @@ let state = {
   running: false,
   highScore: parseInt(localStorage.getItem('bp_hi') || '0'),
 };
+const PROGRESS_KEY = 'balloon-pop-progress-v1';
+
+function loadSavedProgress() {
+  return GameStorage.read(PROGRESS_KEY, null);
+}
+
+function saveProgress() {
+  GameStorage.write(PROGRESS_KEY, { level: state.level, score: state.score });
+}
+
+function clearProgress() {
+  GameStorage.remove(PROGRESS_KEY);
+}
 
 function selectMode(el, mode) {
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
@@ -660,6 +673,7 @@ function nextLevel() {
   state.level++;
   state.levelScore = 0;
   state.levelTarget = 10 + state.level * 3;
+  saveProgress();
   document.getElementById('level-up-screen').classList.add('hidden');
   state.running = true;
   newTarget();
@@ -670,6 +684,8 @@ function nextLevel() {
 
 // ─── Game Lifecycle ───────────────────────────────────────────────────────────
 function startGame() {
+  const saved = loadSavedProgress();
+  const resume = saved && saved.level > 1 && confirm(`Resume Level ${saved.level}?\nChoose Cancel to start from the beginning.`);
   document.getElementById('start-screen').classList.add('hidden');
   document.getElementById('game-over-screen').classList.add('hidden');
   document.getElementById('level-up-screen').classList.add('hidden');
@@ -678,11 +694,12 @@ function startGame() {
   document.getElementById('prompt-banner').classList.remove('hidden');
 
   // Reset
-  state.score = 0;
+  state.score = resume ? saved.score : 0;
   state.lives = 3;
-  state.level = 1;
+  state.level = resume ? saved.level : 1;
   state.levelScore = 0;
   state.levelTarget = 12;
+  if (!resume) clearProgress();
   state.balloonId = 0;
   state.balloons = [];
   state.running = true;
@@ -798,16 +815,10 @@ document.addEventListener('touchstart', () => getAudio(), { once: true });
 document.addEventListener('click', () => getAudio(), { once: true });
 
 function goHome() {
-  if (state.running && !confirm('Leave game? Your progress will be lost.')) return;
+  if (state.running) saveProgress();
   window.location.href = 'index.html';
 }
 
-// Service Worker registration
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  });
-}
 </script>
 </body>
 </html>

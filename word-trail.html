@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Word Nova — 100 Sector Word Search</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="common.css">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -24,8 +25,6 @@
     --r-lg:20px;
     --shadow:0 10px 34px rgba(0,0,0,.45);
   }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{height:100%;}
   body{
     margin:0; min-height:100%; overflow-x:hidden; color:var(--text);
     font-family:'Rajdhani', sans-serif;
@@ -40,7 +39,6 @@
   @keyframes twinkle{0%,100%{opacity:.15;} 50%{opacity:1;}}
   @keyframes anchorPulse{0%,100%{box-shadow:0 0 0 2px rgba(76,227,240,.9) inset;} 50%{box-shadow:0 0 0 2px rgba(76,227,240,.2) inset;}}
 
-  #app{position:relative; z-index:1; max-width:640px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column;}
 
   header.top{padding:22px 18px 14px; display:flex; align-items:flex-end; justify-content:space-between; gap:12px;}
   header.top h1{
@@ -153,7 +151,7 @@
 </head>
 <body>
 <div id="starfield"></div>
-<div id="app">
+<div id="app" class="app-shell">
 
   <header class="top">
     <div>
@@ -163,6 +161,7 @@
     <div class="header-right">
       <button class="icon-btn" id="btnMute" title="Toggle sound">🔊</button>
       <div class="stat-pill">★ <span id="totalStars">0</span>/300</div>
+      <button class="icon-btn" id="btnHome" title="Home">🏠 Home</button>
     </div>
   </header>
 
@@ -204,6 +203,7 @@
   </div>
 </div>
 
+<script src="common.js"></script>
 <script>
 (function(){
   "use strict";
@@ -372,7 +372,8 @@
   }
   function generateLevel(n){
     const tier = tierForLevel(n);
-    const rng = mulberry32(n*7919 + 104729);
+    const seed = (n * 7919 + 104729 + Math.floor(Math.random() * 0x7fffffff)) >>> 0;
+    const rng = mulberry32(seed);
     const data = buildGrid(tier, rng);
     return { level:n, tier, ...data };
   }
@@ -381,19 +382,13 @@
   const STORAGE_KEY = "wordtrail-progress-v2";
   let progress = { levels:{}, soundOn:true };
 
-  async function loadProgress(){
-    try{
-      const res = await window.storage.get(STORAGE_KEY, false);
-      if(res && res.value) progress = JSON.parse(res.value);
-      if(progress.soundOn === undefined) progress.soundOn = true;
-    }catch(e){ progress = { levels:{}, soundOn:true }; }
+  function loadProgress(){
+    progress = GameStorage.read(STORAGE_KEY, { levels:{}, soundOn:true });
+    if(progress.soundOn === undefined) progress.soundOn = true;
     soundOn = progress.soundOn !== false;
     btnMute.textContent = soundOn ? '🔊' : '🔇';
   }
-  async function saveProgress(){
-    try{ await window.storage.set(STORAGE_KEY, JSON.stringify(progress), false); }
-    catch(e){ /* non-fatal */ }
-  }
+  function saveProgress(){ GameStorage.write(STORAGE_KEY, progress); }
   function isUnlocked(n){ return n === 1 || !!progress.levels[n-1]; }
   function totalStars(){ return Object.values(progress.levels).reduce((s,l)=>s+l.stars,0); }
   function levelsCleared(){ return Object.keys(progress.levels).length; }
@@ -729,13 +724,17 @@
     renderMap();
   });
 
+  document.getElementById('btnHome').addEventListener('click', ()=>{
+    window.location.href = 'index.html';
+  });
+
   window.addEventListener('resize', ()=>{
     if(screenGame.style.display === 'flex' && current) renderGrid();
   });
 
   /* ---------------- INIT ---------------- */
-  (async function init(){
-    await loadProgress();
+  (function init(){
+    loadProgress();
     renderMap();
   })();
 
