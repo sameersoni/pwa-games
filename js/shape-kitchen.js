@@ -88,11 +88,12 @@ function generateOrder(level) {
   const color = COLORS[Math.floor(Math.random()*COLORS.length)];
   const count = 1 + Math.floor(Math.random()*Math.min(3+level,5));
 
-  let description, validate, potLabel;
+  let description, validate, potLabel, requirements;
 
   if (type === 'match-shape') {
     description = `<strong>${count} ${shape}${count>1?'s':''}</strong> (any color!)`;
     potLabel = `${count}× ${shape}`;
+    requirements = [{ shape, count }];
     validate = (pot) => {
       const matching = pot.filter(p=>p.shape===shape).length;
       return { ok: matching >= count, need: count, have: matching,
@@ -101,6 +102,7 @@ function generateOrder(level) {
   } else if (type === 'match-color') {
     description = `<strong>${count} ${color} shape${count>1?'s':''}</strong> — any shape!`;
     potLabel = `${count}× ${color}`;
+    requirements = [{ color, count }];
     validate = (pot) => {
       const matching = pot.filter(p=>p.color===color).length;
       return { ok: matching >= count, need: count, have: matching,
@@ -109,6 +111,7 @@ function generateOrder(level) {
   } else if (type === 'match-both') {
     description = `<strong>${count} ${color} ${shape}${count>1?'s':''}</strong>`;
     potLabel = `${count}× ${color} ${shape}`;
+    requirements = [{ shape, color, count }];
     validate = (pot) => {
       const matching = pot.filter(p=>p.shape===shape && p.color===color).length;
       return { ok: matching >= count, need: count, have: matching,
@@ -119,6 +122,7 @@ function generateOrder(level) {
     const shape2 = SHAPES.filter(s=>s!==shape)[Math.floor(Math.random()*(SHAPES.length-1))];
     description = `<strong>${count} ${shape}${count>1?'s':''}</strong> AND <strong>${count2} ${shape2}${count2>1?'s':''}</strong>`;
     potLabel = `${count}×${shape} + ${count2}×${shape2}`;
+    requirements = [{ shape, count }, { shape: shape2, count: count2 }];
     validate = (pot) => {
       const m1 = pot.filter(p=>p.shape===shape).length;
       const m2 = pot.filter(p=>p.shape===shape2).length;
@@ -130,6 +134,7 @@ function generateOrder(level) {
     const color2 = COLORS.filter(c=>c!==color)[Math.floor(Math.random()*(COLORS.length-1))];
     description = `<strong>${count} ${color}</strong> AND <strong>${count2} ${color2}</strong> shapes`;
     potLabel = `${count}×${color} + ${count2}×${color2}`;
+    requirements = [{ color, count }, { color: color2, count: count2 }];
     validate = (pot) => {
       const m1 = pot.filter(p=>p.color===color).length;
       const m2 = pot.filter(p=>p.color===color2).length;
@@ -138,7 +143,7 @@ function generateOrder(level) {
     };
   }
 
-  return { alien, type, shape, color, count, description, potLabel, validate };
+  return { alien, type, shape, color, count, description, potLabel, validate, requirements };
 }
 
 // ═══════════════════════════════════════════════════════
@@ -251,21 +256,21 @@ function renderTray() {
 }
 
 function buildTrayItems() {
-  // Always include shapes/colors relevant to the order + distractors
+  // Guarantee enough tiles to satisfy every requirement of the order
   const o = G.order;
   const items = [];
-  const seen = new Set();
 
-  // Always include the target shape+color combos (3-4 of them)
-  for(let i=0;i<4;i++){
-    const shape = o.shape || SHAPES[Math.floor(Math.random()*SHAPES.length)];
-    const color = o.color || COLORS[Math.floor(Math.random()*COLORS.length)];
-    const key = `${shape}-${color}`;
-    if(!seen.has(key)){ items.push({shape,color}); seen.add(key); }
-  }
+  o.requirements.forEach(req => {
+    for(let i=0;i<req.count;i++){
+      const shape = req.shape || SHAPES[Math.floor(Math.random()*SHAPES.length)];
+      const color = req.color || COLORS[Math.floor(Math.random()*COLORS.length)];
+      items.push({shape, color});
+    }
+  });
 
-  // Fill rest with random distractors up to 12 tiles
-  while(items.length < 12) {
+  // Fill rest with random distractors, at least up to 12 tiles
+  const trayTarget = Math.max(12, items.length + 4);
+  while(items.length < trayTarget) {
     const shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
     const color = COLORS[Math.floor(Math.random()*COLORS.length)];
     items.push({shape, color});
