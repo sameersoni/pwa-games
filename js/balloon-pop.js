@@ -31,6 +31,7 @@ let state = {
   levelTarget: 10,
   running: false,
   highScore: parseInt(localStorage.getItem('bp_hi') || '0'),
+  targetGen: 0,
 };
 const PROGRESS_KEY = 'balloon-pop-progress-v1';
 
@@ -73,6 +74,7 @@ function spawnBalloon() {
   const speed = Math.max(6, 14 - state.level * 1.2); // seconds to float up
 
   const id = ++state.balloonId;
+  const spawnGen = state.targetGen;
   const el = document.createElement('div');
   el.className = 'balloon';
   el.id = 'b' + id;
@@ -98,8 +100,9 @@ function spawnBalloon() {
     if (!document.getElementById('b' + id)) return;
     if (el.parentNode) el.parentNode.removeChild(el);
     state.balloons = state.balloons.filter(b => b.id !== id);
-    // If it was target balloon that escaped
-    if (label === state.target) {
+    // If it was the still-active target balloon that escaped
+    // (targetGen guards against a later round coincidentally reusing the same label)
+    if (label === state.target && spawnGen === state.targetGen) {
       loseLife();
     }
   }, dur);
@@ -148,6 +151,7 @@ function loseLife() {
 
 function newTarget() {
   state.target = pickTarget();
+  state.targetGen++;
   const pt = document.getElementById('prompt-text');
   if (pt) {
     pt.style.transform = 'scale(1.3)';
